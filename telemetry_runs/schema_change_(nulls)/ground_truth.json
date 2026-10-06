@@ -1,0 +1,6 @@
+{
+  "fault": "schema_change",
+  "fault_day": 15,
+  "variant": "nulls",
+  "seed": 0
+}

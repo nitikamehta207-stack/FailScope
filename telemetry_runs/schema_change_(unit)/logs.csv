@@ -1,0 +1,35 @@
+day,level,source,message
+0,INFO,deploy,model v1 and pipeline p1 are live
+0,INFO,serving,batch 0 processed n=1000 model=v1
+1,INFO,serving,batch 1 processed n=1000 model=v1
+2,INFO,serving,batch 2 processed n=1000 model=v1
+3,INFO,serving,batch 3 processed n=1000 model=v1
+4,INFO,serving,batch 4 processed n=1000 model=v1
+5,INFO,serving,batch 5 processed n=1000 model=v1
+6,INFO,serving,batch 6 processed n=1000 model=v1
+7,INFO,serving,batch 7 processed n=1000 model=v1
+8,INFO,serving,batch 8 processed n=1000 model=v1
+9,INFO,serving,batch 9 processed n=1000 model=v1
+10,INFO,serving,batch 10 processed n=1000 model=v1
+11,INFO,serving,batch 11 processed n=1000 model=v1
+11,WARN,feature_store,cache miss rate above usual
+12,INFO,serving,batch 12 processed n=1000 model=v1
+12,WARN,feature_store,cache miss rate above usual
+13,INFO,serving,batch 13 processed n=1000 model=v1
+14,INFO,serving,batch 14 processed n=1000 model=v1
+15,INFO,deploy,pipeline p2 rolled out
+15,INFO,serving,batch 15 processed n=1000 model=v1
+16,INFO,serving,batch 16 processed n=1000 model=v1
+17,INFO,serving,batch 17 processed n=1000 model=v1
+18,INFO,serving,batch 18 processed n=1000 model=v1
+19,INFO,serving,batch 19 processed n=1000 model=v1
+20,INFO,serving,batch 20 processed n=1000 model=v1
+21,INFO,serving,batch 21 processed n=1000 model=v1
+22,INFO,serving,batch 22 processed n=1000 model=v1
+23,INFO,serving,batch 23 processed n=1000 model=v1
+24,INFO,serving,batch 24 processed n=1000 model=v1
+25,INFO,serving,batch 25 processed n=1000 model=v1
+26,INFO,serving,batch 26 processed n=1000 model=v1
+27,INFO,serving,batch 27 processed n=1000 model=v1
+28,INFO,serving,batch 28 processed n=1000 model=v1
+29,INFO,serving,batch 29 processed n=1000 model=v1
