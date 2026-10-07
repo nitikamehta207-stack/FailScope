@@ -15,6 +15,7 @@ Faults (only parameters change, no new code paths):
 from pathlib import Path
 import numpy as np
 import joblib
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 
 from .dataset import generate_data, FEATURES
@@ -22,6 +23,7 @@ from .telemetry import TelemetryStore
 
 MODELS_DIR = Path(__file__).resolve().parents[2] / "models"
 FAULTS = ("data_drift", "schema_change", "bad_deploy")
+FIXES = ("rollback_model", "revert_pipeline_change", "retrain_on_recent")
 
 
 class Simulator:
@@ -32,9 +34,22 @@ class Simulator:
         self.reference = generate_data(5000, seed=2)
         self.medians = self.reference[FEATURES].median()
 
+    def _retrain_on_recent(self, store, day_from, day_to):
+        """Fix: train a fresh model (v3) on the latest labelled traffic."""
+        req = store.requests()
+        recent = req[(req.day >= day_from) & (req.day <= day_to)]
+        X = recent[FEATURES].fillna(self.medians)
+        model = GradientBoostingClassifier(n_estimators=100, max_depth=3, random_state=0)
+        model.fit(X, recent["label"])
+        self.models["v3"] = model
+        return "v3"
+
     def run(self, n_days=30, batch_size=1000, fault=None, fault_day=15,
-            seed=0, variant="unit", ramp_days=4):
+            seed=0, variant="unit", ramp_days=4, fix=None, fix_day=None):
         assert fault is None or fault in FAULTS
+        assert fix is None or fix in FIXES
+        self.models.pop("v3", None)          # a retrained model never leaks between runs
+        pipeline_reverted = False
         store = TelemetryStore()
         store.ground_truth = {"fault": fault, "fault_day": fault_day if fault else None,
                               "variant": variant if fault == "schema_change" else None,
@@ -56,12 +71,27 @@ class Simulator:
                 store.add_deploy(day, "pipeline", "p2", "preprocessing update")
                 store.add_log(day, "INFO", "deploy", "pipeline p2 rolled out")
 
+            # --- remediation: a fix applied on fix_day (used after the agent's diagnosis) ---
+            if fix and day == fix_day:
+                if fix == "rollback_model":
+                    model_version = "v1"
+                    store.add_deploy(day, "model", "v1", "rollback to v1 (remediation)")
+                    store.add_log(day, "INFO", "deploy", "model rolled back to v1")
+                elif fix == "revert_pipeline_change":
+                    pipeline_version, pipeline_reverted = "p1", True
+                    store.add_deploy(day, "pipeline", "p1", "revert preprocessing update (remediation)")
+                    store.add_log(day, "INFO", "deploy", "pipeline reverted to p1")
+                elif fix == "retrain_on_recent":
+                    model_version = self._retrain_on_recent(store, day - 5, day - 1)
+                    store.add_deploy(day, "model", model_version, "retrained on last 5 days (remediation)")
+                    store.add_log(day, "INFO", "deploy", "model v3 retrained and rolled out")
+
             # --- parameters for today's data ---
             drift, corrupt = None, None
             if fault == "data_drift" and day >= fault_day:
                 progress = min(1.0, (day - fault_day + 1) / ramp_days)   # gradual change
                 drift = {"income_scale": 1 + (0.6 - 1) * progress}
-            if fault == "schema_change" and day >= fault_day:
+            if fault == "schema_change" and day >= fault_day and not pipeline_reverted:
                 corrupt = {"income_scale": 0.001} if variant == "unit" else {"credit_null_rate": 0.3}
 
             # --- generate and serve the batch ---
