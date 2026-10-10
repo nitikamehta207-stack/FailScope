@@ -63,7 +63,8 @@ class Investigator:
 
         # ---- 3. Hypotheses, then validation ----
         proposed = self.reasoner.propose(tb.evidence)
-        trace.append(f"Reasoner proposed {len(proposed)} hypotheses.")
+        source = getattr(self.reasoner, "last_source", "rules")
+        trace.append(f"Reasoner ({source}) proposed {len(proposed)} hypotheses.")
         valid, rejected = [], []
         for h in proposed:
             result = validate(h, tb.evidence)
