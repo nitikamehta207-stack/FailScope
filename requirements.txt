@@ -6,3 +6,4 @@ matplotlib
 scipy
 openai
 python-dotenv
+streamlit
